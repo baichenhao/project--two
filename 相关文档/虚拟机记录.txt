@@ -1,0 +1,55 @@
+nginx1       192.168.57.132
+nginx2       192.168.57.13
+tomcat1   192.168.57.134     8082   8081
+tomcat2   192.168.57.131
+
+wget https://www.openssl.org/source/openssl-1.1.1.tar.gz
+wget http://www.zlib.net/zlib-1.2.11.tar.gz
+wget https://ftp.pcre.org/pub/pcre/pcre-8.33.tar.gz
+wget http://nginx.org/download/nginx-1.14.0.tar.gz
+wget http://www.keepalived.org/software/keepalived-2.0.16.tar.gz
+
+wget http://download.redis.io/releases/redis-4.0.9.tar.gz
+
+
+一台tomcat大概120人
+预计设置4台tomcat
+两台服务器，每台两个
+
+两个 nginx    在一台 服务器上，，  用keppalive进行  热切换
+
+两个 redis     在一台服务器上，，   用keepalive进行   热切换
+
+动静态资源分类先不进行配置
+
+总：    4台服务器   
+
+
+为了解决在一定时间内的高流量访问问题，本项目采用nginx + tomcat集群实现负载均衡，以nginx作为负载均衡服务器、反向代理服务器
+以及作为静态资源的存储服务器实现“动静态分离”，在tomcat集群中，因为tomcat作为后端动态资源服务器并不止一个，nginx服务器不
+同的请求不一定分到同一个tomcat服务器，导致每次的请求的session不一致，为此，本项目采用redis做缓存，辅助存储session保持用户登陆
+状态。同时，为保证不出现单个nginx的单点故障问题，配置keepalived，实现nginx的主从热备，提高程序的HA。
+
+172.31.83.122
+
+
+
+spring:
+  thymeleaf: false
+  datasource:
+    url: jdbc:mysql://localhost:3306/lunwen?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password:
+    driver-class-name: com.mysql.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+#      dialect: org.hibernate.dialect.MySQL55Dialect
+    show-sql: true
+#    database-platform: org.hibernate.dialect.MySQL57Dialect
+server:
+    port: 8080
+    tomcat:
+      uri-encoding: UTF-8
+      max-threads: 300
+      max-connections: 1000
